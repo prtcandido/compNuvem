@@ -1,0 +1,93 @@
+
+# BLOB STORAGE
+# Obter dados da conta da Azure (subscription)
+az account show --query id --output tsv
+
+# Obtenha seu e-mail de login na Azure
+USER_EMAIL=$(az ad signed-in-user show --query userPrincipalName -o tsv)
+
+# Atribua a permissão de Contribuidor (leitura e gravação) de Dados de Tabela
+az role assignment create \
+    --role "Storage Blob Data Contributor" \
+    --assignee "$USER_EMAIL" \
+    --scope "/subscriptions/3c2b3170-57f2-4a04-843f-169f75cea6dd/resourceGroups/grupoTeste/providers/Microsoft.Storage/storageAccounts/prtcandido123"
+
+# Faça upload de um arquivo para o Blob Storage usando a autenticação de login
+az storage blob upload \
+    --account-name prtcandido123 \
+    --container-name cteste1 \
+    --name "nomeBlobAzure.pdf" \
+    --file "./nomeLocal.pdf" \
+    --auth-mode login
+
+# Liste os blobs no container usando a autenticação de login
+az storage blob list \
+    --account-name prtcandido123 \
+    --container-name cteste1 \
+    --output table \
+    --auth-mode login
+
+# Faça download de um blob do Blob Storage usando a autenticação de login
+az storage blob download \
+    --account-name prtcandido123 \
+    --container-name cteste1 \
+    --name "nomeBlobAzure.pdf" \
+    --file "./novoNomeLocal.pdf" \
+    --auth-mode login
+
+# TABLE STORAGE
+# Liste as tabelas na conta de armazenamento usando a autenticação de login
+az storage table list \
+    --account-name prtcandido123 \
+    --auth-mode login \
+    --output table
+
+# Obter dados da conta da Azure (subscription)
+az account show --query id --output tsv
+
+# Obtenha seu e-mail de login na Azure
+USER_EMAIL=$(az ad signed-in-user show --query userPrincipalName -o tsv)
+
+#Atribua a permissão de Contribuidor (leitura e gravação) de Dados de Tabela
+az role assignment create \
+    --assignee "$USER_EMAIL" \
+    --role "Storage Table Data Contributor" \
+    --scope "/subscriptions/3c2b3170-57f2-4a04-843f-169f75cea6dd/resourceGroups/grupoTeste/providers/Microsoft.Storage/storageAccounts/prtcandido123"
+
+# Insira uma entidade na tabela usando a autenticação de login
+az storage entity insert \
+    --account-name prtcandido123 \
+    --table-name tabela123 \
+    --entity PartitionKey=FatecPG RowKey=Linha1 Portaria="123/2026" \
+    --auth-mode login
+
+# Insira outra entidade na tabela usando a autenticação de login
+az storage entity insert \
+    --account-name prtcandido123 \
+    --table-name tabela123 \
+    --entity PartitionKey=FatecPGAluno RowKey=aluno10 Nome="João" Endereco="Rua X,47" \
+    --auth-mode login
+
+# Consulte as entidades na tabela usando a autenticação de login
+az storage entity query \
+    --account-name prtcandido123 \
+    --table-name tabela123 \
+    --auth-mode login \
+    --output table
+
+# Modificar uma entidade na tabela usando a autenticação de login
+az storage entity replace \
+    --account-name prtcandido123 \
+    --table-name tabela123 \
+    --entity PartitionKey=FatecPGAluno RowKey=aluno10 Nome="João" Endereco="Rua Nova, 100" \
+    --auth-mode login
+
+# Excluir uma entidade da tabela usando a autenticação de login
+az storage entity delete \
+    --account-name prtcandido123 \
+    --table-name tabela123 \
+    --partition-key "FatecPGAluno" \
+    --row-key "aluno10" \
+    --auth-mode login
+
+
