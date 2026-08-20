@@ -11,12 +11,18 @@ terraform {
 # 2. Configurar as funcionalidades do Provedor
 provider "azurerm" {
   features {} # Este bloco é obrigatório para a Azure
+
+  # Dados de autenticação do Service Principal
+  subscription_id = "54040fac-72......"
+  tenant_id       = "eabe64c5-68......."
+  client_id       = "3926d36a-cc......."
+  client_secret   = "jI88Q~hP7XT........"
 }
 
 # 3. Criar o Grupo de Recursos
 resource "azurerm_resource_group" "rg-teste" {
   name     = "grupoTeste"
-  location = "Brazil South"
+  location = "Mexico Central" # "Mexico Central" # "Brazil South"
 }
 
 # 4. Rede Virtual (VNET)
@@ -54,9 +60,9 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                = "vm-01"
   resource_group_name = azurerm_resource_group.rg-teste.name
   location            = azurerm_resource_group.rg-teste.location
-  size                = "Standard_E2s_v3" # Versão barata para testes
+  size                = "Standard_B2as_v2" # Versão barata para testes - Standard_E2s_v3
   admin_username      = "adminuser"
-  zone                = "2"
+  zone                = "1"
   network_interface_ids = [
     azurerm_network_interface.nic.id,
   ]
@@ -70,10 +76,17 @@ resource "azurerm_linux_virtual_machine" "vm" {
     storage_account_type = "Standard_LRS"
   }
 
+  # source_image_reference {
+  #  publisher = "Canonical"
+  #  offer     = "UbuntuServer"
+  #  sku       = "18.04-LTS-gen2"
+  #  version   = "latest"
+  # }
+
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server" 
     version   = "latest"
   }
 }
@@ -103,6 +116,32 @@ resource "azurerm_network_security_group" "my_nsg" {
     source_port_range          = "*"
     destination_port_range     = "22"
     source_address_prefix      = "*" # Cuidado: "*" libera para o mundo todo
+    destination_address_prefix = "*"
+  }
+
+  # Regra para permitir HTTP (Porta 80)
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 110          # Prioridade deve ser única
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Regra para permitir HTTPS (Porta 443)
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
 }
